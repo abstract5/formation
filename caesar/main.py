@@ -16,10 +16,37 @@
 #
 import webapp2
 from caesar import encrypt
+import cgi
+
+en_form="""
+<form method="post">
+    <label>Enter rotation amount:
+        <input name="rot" value="%(rot)s"/>
+    </label>
+    <br>
+    <textarea rows="6" cols="50" name="en">%(en)s</textarea>
+    <br>
+    <input type="submit"/>
+</form>
+"""
 
 class MainHandler(webapp2.RequestHandler):
+    def write_form(self, rot="", en=""):
+        self.response.write(en_form % {"rot": cgi.escape(rot, quote=True),
+                                        "en": cgi.escape(en, quote=True)})
+
     def get(self):
-        self.response.write('Hello world!')
+        self.write_form()
+
+    def post(self):
+        user_rot = self.request.get("rot")
+        user_en = self.request.get("en")
+
+        if user_rot.isdigit():
+            rot_amount = int(user_rot)
+            user_en = encrypt(user_en, rot_amount)
+
+        self.write_form(user_rot, user_en)
 
 app = webapp2.WSGIApplication([
     ('/', MainHandler)
