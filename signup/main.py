@@ -65,39 +65,40 @@ sign_form = """
 
 class MainHandler(webapp2.RequestHandler):
     def write_form(self, username="", use_error="", pass_error="", email="", email_error=""):
-         self.response.write(sign_form % {"username": username,
-                                        "use_error": use_error,
-                                        "pass_error": pass_error,
-                                        "email": email,
-                                        "email_error": email_error})
+         self.response.write(sign_form % {"username": cgi.escape(username),
+                                        "use_error": cgi.escape(use_error),
+                                        "pass_error": cgi.escape(pass_error),
+                                        "email": cgi.escape(email),
+                                        "email_error": cgi.escape(email_error)})
 
     def get(self):
         self.write_form()
 
     def post(self):
         username = self.request.get("username")
+        use_error = self.request.get("use_error")
         passw = self.request.get("passw")
+        pass_error = self.request.get("pass_error")
         pass_c = self.request.get("pass_c")
         email = self.request.get("email")
+        email_error = self.request.get("email_error")
 
         if not valid_username(username):
             use_error = "Please enter a valid username."
-            self.write_form()
         if not valid_password(passw):
             pass_error = "Please enter a valid Password."
-            self.write_form()
         if not passw == pass_c:
             pass_error = "Your passwords do not match."
-            self.write_form()
         if email:
             if not valid_email(email):
                 email_error = "That is not a valid email."
-                self.write_form()
+        if(use_error or pass_error or email_error):
+            self.write_form(username, use_error, pass_error, email, email_error)
         else:
-            self.redirect("/welcome")
+            self.redirect("/welcome?username=" + username)
 
 class WelcomeHandler(webapp2.RequestHandler):
-    def post(self):
+    def get(self):
         username = self.request.get("username")
         self.response.write("<h1><b>Welcome, " + username + "!</b></h1>")
 
